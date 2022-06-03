@@ -16,9 +16,9 @@ def getRelativePosition():
 
 
 pygame.init()
+configPath = os.path.dirname(os.path.realpath(__file__))
 defaultWidth = 640
 defaultHeight = 640
-configPath = os.path.dirname(os.path.realpath(__file__))
 window = pygame.display.set_mode([defaultWidth, defaultHeight], RESIZABLE)
 clock = pygame.time.Clock()
 FPS = 320

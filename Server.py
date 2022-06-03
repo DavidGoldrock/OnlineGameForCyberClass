@@ -120,6 +120,7 @@ def handleClient(conn, addr):
 						print(msg)
 						sendMessage(402, conn)
 				case RequestType.GET_GAME_VARS:
+					print(f"[GameVars] conn: {conn.getsockname()} {gameThread._args[0]}")
 					sendMessage(200, conn, value=gameThread._args[0])
 				case RequestType.SET_Y:
 					if msg.value:
@@ -132,9 +133,9 @@ def handleClient(conn, addr):
 						sendMessage(402, conn)
 				case RequestType.JOIN_GAME:
 					for g in games:
-						if g.name == msg.value.name:
-							if g.password == msg:
-								gameThread = g.thread
+						if g["name"] == msg.value["name"]:
+							if g["password"] == msg.value["password"]:
+								gameThread = g["thread"]
 								Cardinality = 1
 								sendMessage(200, conn)
 							else:
