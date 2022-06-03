@@ -18,11 +18,14 @@ server.bind(ADDR)
 games = []
 playerCount = 0
 
+
 def isColliding(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h):
-    return r1x + r1w >= r2x and \
-        r1x <= r2x + r2w and \
-        r1y + r1h >= r2y and \
-        r1y <= r2y + r2h
+	return r1x + r1w >= r2x and \
+	       r1x <= r2x + r2w and \
+	       r1y + r1h >= r2y and \
+	       r1y <= r2y + r2h
+
+
 def createRandomDirection():
 	ballDirection = Vector.fromDegrees(random.uniform(75, 40), 1)
 	if random.choice([True, False]):
@@ -47,7 +50,8 @@ def gameThreadFunction(gameVars: Game, nothing):
 			ballDirection.y *= -1
 			gameVars.ball.y = BALL_WIDTH
 
-		if isColliding(DISTANCE_FROM_WALL , gameVars.player1y , PLAYER_WIDTH, PLAYER_HEIGHT ,gameVars.ball.x , gameVars.ball.y , BALL_WIDTH , BALL_WIDTH):
+		if isColliding(DISTANCE_FROM_WALL, gameVars.player1y, PLAYER_WIDTH, PLAYER_HEIGHT, gameVars.ball.x,
+		               gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 			ballDirection.x = 1
 			# get the percentage of the way the ball is from the top of the player to the bottom
 			# adjust it so it goes from 0.5 to -0.5
@@ -55,7 +59,8 @@ def gameThreadFunction(gameVars: Game, nothing):
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
 			                  * math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
-		if isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH , gameVars.player2y , PLAYER_WIDTH, PLAYER_HEIGHT ,gameVars.ball.x , gameVars.ball.y , BALL_WIDTH , BALL_WIDTH):
+		if isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, gameVars.player2y, PLAYER_WIDTH, PLAYER_HEIGHT,
+		               gameVars.ball.x, gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 			ballDirection.x = -1
 			# get the percentage of the way the ball is from the top of the player to the bottom
 			# adjust it so it goes from 0.5 to -0.5
@@ -75,8 +80,10 @@ def gameThreadFunction(gameVars: Game, nothing):
 		timeNow = time.time()
 
 
-def sendMessage(code: int, conn: socket.socket, value=None):
+def sendMessage(code: int, conn: socket.socket, value=None, ShouldPrint=False):
 	msg = Response(code, value)
+	if ShouldPrint:
+		msg.print(True)
 	message = pickle.dumps(msg.toTuple())  # turn to bytes
 	# send length of message in header bytes
 	msgLength = str(len(message)).encode(FORMAT)
@@ -89,7 +96,7 @@ def sendMessage(code: int, conn: socket.socket, value=None):
 def handleClient(conn, addr):
 	global playerCount
 	global games
-	print(f"[CONNECT]{conn.getsockname()}")
+	print(f"[CONNECT]{conn.getpeername()}")
 	connected = True
 	gameThread = None
 	Cardinality = None
@@ -103,8 +110,11 @@ def handleClient(conn, addr):
 				case RequestType.DISCONNECT:
 					connected = False
 					playerCount -= 1
-					gameThread._args[0].gameOn = False
-					print(f"[DISCONNECT]{conn.getsockname()}")
+					try:
+						gameThread._args[0].gameOn = False
+					except:
+						pass
+					print(f"[DISCONNECT]{conn.getpeername()}")
 					print(f"[STATUS] Number of active users:{playerCount}")
 					sendMessage(200, conn)
 				case RequestType.CREATE_GAME:
@@ -117,10 +127,8 @@ def handleClient(conn, addr):
 						print(f"[Player Dict Updated]")
 						sendMessage(200, conn)
 					else:
-						print(msg)
 						sendMessage(402, conn)
 				case RequestType.GET_GAME_VARS:
-					print(f"[GameVars] conn: {conn.getsockname()} {gameThread._args[0]}")
 					sendMessage(200, conn, value=gameThread._args[0])
 				case RequestType.SET_Y:
 					if msg.value:
@@ -132,8 +140,10 @@ def handleClient(conn, addr):
 					else:
 						sendMessage(402, conn)
 				case RequestType.JOIN_GAME:
+					found = False
 					for g in games:
 						if g["name"] == msg.value["name"]:
+							found = True
 							if g["password"] == msg.value["password"]:
 								gameThread = g["thread"]
 								Cardinality = 1
@@ -141,7 +151,8 @@ def handleClient(conn, addr):
 							else:
 								sendMessage(401, conn)
 							break
-					sendMessage(403, conn)
+					if not found:
+						sendMessage(403, conn)
 				case other_message:
 					sendMessage(400, conn)
 					print(f"[UNEXPECTED REQUEST] type:{other_message} value: {msg.value}")
