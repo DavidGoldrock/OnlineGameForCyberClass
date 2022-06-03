@@ -3,12 +3,13 @@ import math
 from enum import Enum, auto
 
 PORT = 5050
-HEADER = 8
+HEADER = 4
 FORMAT = 'utf-8'
 DISTANCE_FROM_WALL = 0.1
 BALL_WIDTH = 0.02
 PLAYER_HEIGHT = 0.15
 PLAYER_WIDTH = 0.025
+FPS = 24
 
 class RequestType(Enum):
 	DISCONNECT = auto()
@@ -82,8 +83,9 @@ class Vector:
 		return math.sqrt(self.x * self.x + self.y * self.y)
 
 	def normalize(self):
-		self.x /= self.magnitude()
-		self.y /= self.magnitude()
+		m = self.magnitude()
+		self.x /= m
+		self.y /= m
 
 	def __mul__(self, m: int | float):
 		return Vector(self.x * m, self.y * m)

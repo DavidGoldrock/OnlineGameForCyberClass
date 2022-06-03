@@ -3,12 +3,13 @@ import random
 import socket
 import threading
 import time
-import numpy as np
+import pygame
 from Definitions import *
 # green terminal:
 from os import system
-
 system('color a')
+#pygame init
+pygame.init()
 # create socket
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
@@ -37,10 +38,13 @@ def createRandomDirection():
 
 def gameThreadFunction(gameVars: Game, nothing):
 	timeNow = time.time()
+	clock = pygame.time.Clock()
 	ballDirection = createRandomDirection()
+	speed = 1
 	while gameVars.gameOn:
+		clock.tick(FPS)
 		deltaTime = time.time() - timeNow
-		gameVars.ball = gameVars.ball + (ballDirection * deltaTime * 5)
+		gameVars.ball = gameVars.ball + (ballDirection * deltaTime * speed)
 
 		if gameVars.ball.y + BALL_WIDTH > 1:
 			ballDirection.y *= -1
@@ -59,6 +63,7 @@ def gameThreadFunction(gameVars: Game, nothing):
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
 			                  * math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
+			speed += 0.1
 		if isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, gameVars.player2y, PLAYER_WIDTH, PLAYER_HEIGHT,
 		               gameVars.ball.x, gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 			ballDirection.x = -1
@@ -68,15 +73,17 @@ def gameThreadFunction(gameVars: Game, nothing):
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player2y) / PLAYER_HEIGHT) - 0.5) \
 			                  * math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
+			speed += 0.1
 		if gameVars.ball.x - BALL_WIDTH < 0:
 			gameVars.player2Score += 1
 			gameVars.ball = Vector(0.5, 0.5)
 			ballDirection = createRandomDirection()
+			speed = 1
 		if gameVars.ball.x + BALL_WIDTH > 1:
 			gameVars.player1Score += 1
 			gameVars.ball = Vector(0.5, 0.5)
 			ballDirection = createRandomDirection()
-
+			speed = 1
 		timeNow = time.time()
 
 
@@ -132,7 +139,7 @@ def handleClient(conn, addr):
 					else:
 						sendMessage(402, conn)
 				case RequestType.GET_GAME_VARS:
-					sendMessage(200, conn, value=gameThread._args[0])
+					sendMessage(200, conn, value={"ball": gameThread._args[0].ball , "player1y":gameThread._args[0].player1y,"player2y":gameThread._args[0].player2y , "player1Score":gameThread._args[0].player1Score , "player2Score":gameThread._args[0].player2Score})
 				case RequestType.SET_Y:
 					if msg.value:
 						if Cardinality == 0:
@@ -150,7 +157,7 @@ def handleClient(conn, addr):
 							if g["password"] == msg.value["password"]:
 								gameThread = g["thread"]
 								Cardinality = 1
-								sendMessage(200, conn,value=0)
+								sendMessage(200, conn,value=1)
 							else:
 								sendMessage(401, conn)
 							break
