@@ -112,6 +112,9 @@ def handleClient(conn, addr):
 					playerCount -= 1
 					try:
 						gameThread._args[0].gameOn = False
+						for i in range(len(games)):
+							if games[i]["thread"] == gameThread:
+								games.pop(i)
 					except:
 						pass
 					print(f"[DISCONNECT]{conn.getpeername()}")
@@ -125,7 +128,7 @@ def handleClient(conn, addr):
 						print(f"[Game Added] {msg.value}")
 						Cardinality = 0
 						print(f"[Player Dict Updated]")
-						sendMessage(200, conn)
+						sendMessage(200, conn , value=0)
 					else:
 						sendMessage(402, conn)
 				case RequestType.GET_GAME_VARS:
@@ -147,7 +150,7 @@ def handleClient(conn, addr):
 							if g["password"] == msg.value["password"]:
 								gameThread = g["thread"]
 								Cardinality = 1
-								sendMessage(200, conn)
+								sendMessage(200, conn,value=0)
 							else:
 								sendMessage(401, conn)
 							break
