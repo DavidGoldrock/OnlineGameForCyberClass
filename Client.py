@@ -10,7 +10,7 @@ client.connect(ADDR)
 
 def send(typ: RequestType, value=None):
 	msg = Request(typ, value)
-	message = pickle.dumps(msg.toTuple())
+	message = msg.toByteArray()
 	msgLength = str(len(message)).encode(FORMAT)
 	if HEADER - len(msgLength) < 0:
 		raise ValueError(f"[ERROR] HEADER size too small, increase size of HEADER by {len(msgLength) - HEADER} bytes")
@@ -18,4 +18,4 @@ def send(typ: RequestType, value=None):
 	client.send(msgLength)
 	client.send(message)
 	returnLength = int(client.recv(HEADER).decode(FORMAT))
-	return Response.fromTuple(pickle.loads(client.recv(returnLength)))
+	return Response.fromByteArray(client.recv(returnLength))

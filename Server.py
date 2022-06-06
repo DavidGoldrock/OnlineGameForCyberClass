@@ -7,8 +7,9 @@ import pygame
 from Definitions import *
 # green terminal:
 from os import system
+
 system('color a')
-#pygame init
+# pygame init
 pygame.init()
 # create socket
 SERVER = socket.gethostbyname(socket.gethostname())
@@ -91,7 +92,7 @@ def sendMessage(code: int, conn: socket.socket, value=None, ShouldPrint=False):
 	msg = Response(code, value)
 	if ShouldPrint:
 		msg.print(True)
-	message = pickle.dumps(msg.toTuple())  # turn to bytes
+	message = msg.toByteArray()  # turn to bytes
 	# send length of message in header bytes
 	msgLength = str(len(message)).encode(FORMAT)
 	msgLength += b' ' * (HEADER - len(msgLength))
@@ -111,7 +112,7 @@ def handleClient(conn, addr):
 		msgLength = conn.recv(HEADER).decode(FORMAT)
 		if msgLength:
 			msgLength = int(msgLength)
-			msg = Request.fromTuple(pickle.loads(conn.recv(msgLength)))  # receive number of bytes told by user
+			msg = Request.fromByteArray(conn.recv(msgLength))  # receive number of bytes told by user
 			# act in different ways depending on the request type
 			match msg.RequestType:
 				case RequestType.DISCONNECT:
@@ -129,17 +130,21 @@ def handleClient(conn, addr):
 					sendMessage(200, conn)
 				case RequestType.CREATE_GAME:
 					if msg.value is not None:
-						gameThread = threading.Thread(target=gameThreadFunction, args=(msg.value, 0), daemon=True)
+						gameThread = threading.Thread(target=gameThreadFunction, args=(Game(), 0), daemon=True)
 						gameThread.start()
-						games.append({"thread": gameThread, "name": msg.value.name, "password": msg.value.password})
+						games.append({"thread": gameThread, "name": msg.value["name"], "password": msg.value["password"]})
 						print(f"[Game Added] {msg.value}")
 						Cardinality = 0
 						print(f"[Player Dict Updated]")
-						sendMessage(200, conn , value=0)
+						sendMessage(200, conn, value=0)
 					else:
 						sendMessage(402, conn)
 				case RequestType.GET_GAME_VARS:
-					sendMessage(200, conn, value={"ball": gameThread._args[0].ball , "player1y":gameThread._args[0].player1y,"player2y":gameThread._args[0].player2y , "player1Score":gameThread._args[0].player1Score , "player2Score":gameThread._args[0].player2Score})
+					sendMessage(200, conn,
+					            value={"ball": gameThread._args[0].ball, "player1y": gameThread._args[0].player1y,
+					                   "player2y": gameThread._args[0].player2y,
+					                   "player1Score": gameThread._args[0].player1Score,
+					                   "player2Score": gameThread._args[0].player2Score})
 				case RequestType.SET_Y:
 					if msg.value:
 						if Cardinality == 0:
@@ -157,12 +162,25 @@ def handleClient(conn, addr):
 							if g["password"] == msg.value["password"]:
 								gameThread = g["thread"]
 								Cardinality = 1
-								sendMessage(200, conn,value=1)
+								sendMessage(200, conn, value=1)
 							else:
 								sendMessage(401, conn)
 							break
 					if not found:
 						sendMessage(403, conn)
+				case RequestType.UPDATE_GAME:
+					if msg.value:
+						if Cardinality == 0:
+							gameThread._args[0].player1y = msg.value
+						else:
+							gameThread._args[0].player2y = msg.value
+						sendMessage(200, conn,
+						            value={"ball": gameThread._args[0].ball, "player1y": gameThread._args[0].player1y,
+						                   "player2y": gameThread._args[0].player2y,
+						                   "player1Score": gameThread._args[0].player1Score,
+						                   "player2Score": gameThread._args[0].player2Score})
+					else:
+						sendMessage(402, conn)
 				case other_message:
 					sendMessage(400, conn)
 					print(f"[UNEXPECTED REQUEST] type:{other_message} value: {msg.value}")

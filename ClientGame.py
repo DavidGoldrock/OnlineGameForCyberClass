@@ -23,7 +23,7 @@ defaultHeight = 640
 window = pygame.display.set_mode([defaultWidth, defaultHeight], RESIZABLE)
 clock = pygame.time.Clock()
 running = True
-Cardinality = Client.send(RequestType.CREATE_GAME, Game("chen")).value
+Cardinality = Client.send(RequestType.CREATE_GAME, {"name": "chen", "password": "none"}).value
 
 
 # Cardinality = Client.send(RequestType.JOIN_GAME, {"name": "chen", "password": None}).value
