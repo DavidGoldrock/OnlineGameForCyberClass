@@ -1,7 +1,7 @@
 import socket
 import pickle
 from Definitions import *
-
+from RequestResponse import *
 SERVER = "192.168.2.102"
 ADDR = (SERVER, PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

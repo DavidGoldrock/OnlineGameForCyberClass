@@ -1,12 +1,13 @@
-import pickle
 import random
 import socket
 import threading
 import time
-import pygame
-from Definitions import *
 # green terminal:
 from os import system
+
+import pygame
+
+from RequestResponse import *
 
 system('color a')
 # pygame init
@@ -62,7 +63,7 @@ def gameThreadFunction(gameVars: Game, nothing):
 			# adjust it so it goes from 0.5 to -0.5
 			# make it go in the same direction from where it went and more extreme
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
-			                  * math.copysign(3.5, ballDirection.y)
+				* math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
 			speed += 0.1
 		if isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, gameVars.player2y, PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -72,7 +73,7 @@ def gameThreadFunction(gameVars: Game, nothing):
 			# adjust it so it goes from 0.5 to -0.5
 			# make it go in the same direction from where it went and more extreme
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player2y) / PLAYER_HEIGHT) - 0.5) \
-			                  * math.copysign(3.5, ballDirection.y)
+				* math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
 			speed += 0.1
 		if gameVars.ball.x - BALL_WIDTH < 0:
@@ -132,7 +133,8 @@ def handleClient(conn, addr):
 					if msg.value is not None:
 						gameThread = threading.Thread(target=gameThreadFunction, args=(Game(), 0), daemon=True)
 						gameThread.start()
-						games.append({"thread": gameThread, "name": msg.value["name"], "password": msg.value["password"]})
+						games.append(
+							{"thread": gameThread, "name": msg.value["name"], "password": msg.value["password"]})
 						print(f"[Game Added] {msg.value}")
 						Cardinality = 0
 						print(f"[Player Dict Updated]")
@@ -140,11 +142,7 @@ def handleClient(conn, addr):
 					else:
 						sendMessage(402, conn)
 				case RequestType.GET_GAME_VARS:
-					sendMessage(200, conn,
-					            value={"ball": gameThread._args[0].ball, "player1y": gameThread._args[0].player1y,
-					                   "player2y": gameThread._args[0].player2y,
-					                   "player1Score": gameThread._args[0].player1Score,
-					                   "player2Score": gameThread._args[0].player2Score})
+					sendMessage(200, conn,value=gameThread._args[0])
 				case RequestType.SET_Y:
 					if msg.value:
 						if Cardinality == 0:
