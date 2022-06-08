@@ -97,9 +97,7 @@ def sendMessage(code: int, conn: socket.socket, value=None, ShouldPrint=False):
 	# send length of message in header bytes
 	msgLength = str(len(message)).encode(FORMAT)
 	msgLength += b' ' * (HEADER - len(msgLength))
-	conn.send(msgLength)
-	# send message
-	conn.send(message)
+	conn.send(msgLength + message)
 
 
 def handleClient(conn, addr):
