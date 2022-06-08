@@ -43,7 +43,7 @@ while running:
 	keys = pygame.key.get_pressed()
 	clock.tick(FPS)
 	# [Rendering]
-	gameVars = Client.send(RequestType.GET_GAME_VARS).value
+	gameVars = Client.send(RequestType.UPDATE_GAME, value=getRelativePosition()[1]).value
 	screenSize = getScreenSize()
 	if Cardinality == 1:
 		opponentY = gameVars.player1y * getScreenSize()[1]
@@ -66,7 +66,6 @@ while running:
 	       BALL_WIDTH * screenSize[0])
 	textBlock(str(gameVars.player1Score), DISTANCE_FROM_WALL, 0, 48, (255, 255, 255))
 	textBlock(str(gameVars.player2Score), 1 - DISTANCE_FROM_WALL, 0, 48, (255, 255, 255))
-	Client.send(RequestType.SET_Y, getRelativePosition()[1])
 	pygame.display.flip()
 	window.fill((0, 0, 0))
 Client.send(RequestType.DISCONNECT).print()

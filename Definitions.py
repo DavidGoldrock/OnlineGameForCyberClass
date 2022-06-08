@@ -70,6 +70,8 @@ class Game:
 		self.gameOn = True
 		self.ball = Vector(0.5, 0.5)
 
+	def __str__(self):
+		return f"player1y: {self.player1y} player2y : {self.player2y} player1Score : {self.player1Score} player2Score : {self.player2Score}gameOn : {self.gameOn} ball : {self.ball}"
 	def toByteArray(self):
 		return struct.pack('d', self.player1y) + \
 		       struct.pack('d', self.player2y) + \

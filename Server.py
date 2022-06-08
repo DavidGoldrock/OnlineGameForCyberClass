@@ -165,18 +165,11 @@ def handleClient(conn, addr):
 					if not found:
 						sendMessage(403, conn)
 				case RequestType.UPDATE_GAME:
-					if msg.value:
-						if Cardinality == 0:
-							gameThread._args[0].player1y = msg.value
-						else:
-							gameThread._args[0].player2y = msg.value
-						sendMessage(200, conn,
-						            value={"ball": gameThread._args[0].ball, "player1y": gameThread._args[0].player1y,
-						                   "player2y": gameThread._args[0].player2y,
-						                   "player1Score": gameThread._args[0].player1Score,
-						                   "player2Score": gameThread._args[0].player2Score})
+					if Cardinality == 0:
+						gameThread._args[0].player1y = msg.value
 					else:
-						sendMessage(402, conn)
+						gameThread._args[0].player2y = msg.value
+					sendMessage(200, conn,value=gameThread._args[0])
 				case other_message:
 					sendMessage(400, conn)
 					print(f"[UNEXPECTED REQUEST] type:{other_message} value: {msg.value}")
