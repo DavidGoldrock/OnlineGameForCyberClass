@@ -43,7 +43,8 @@ while running:
 	keys = pygame.key.get_pressed()
 	clock.tick(FPS)
 	# [Rendering]
-	gameVars = Client.send(RequestType.UPDATE_GAME, value=getRelativePosition()[1]).value
+	Client.send(RequestType.SET_Y, getRelativePosition()[1])
+	gameVars = Client.send(RequestType.GET_GAME_VARS).value
 	screenSize = getScreenSize()
 	if Cardinality == 1:
 		opponentY = gameVars.player1y * getScreenSize()[1]
