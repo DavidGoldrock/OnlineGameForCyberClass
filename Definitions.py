@@ -17,6 +17,7 @@ PLAYER_WIDTH = 0.025
 FPS = 60
 games = []
 
+
 class Connected:
 	def __init__(self, connected1, connected2):
 		self.connected1 = connected1
@@ -99,7 +100,7 @@ class Game:
 
 class GameThread(threading.Thread):
 	def __init__(self, gameVars: Game, connected: Connected, index: int):
-		super().__init__()
+		super().__init__(daemon=True)
 		self.gameVars = gameVars
 		self.connected = connected
 		self.index = index
@@ -110,6 +111,7 @@ class GameThread(threading.Thread):
 		       r1x <= r2x + r2w and \
 		       r1y + r1h >= r2y and \
 		       r1y <= r2y + r2h
+
 	@staticmethod
 	def createRandomDirection():
 		ballDirection = Vector.fromDegrees(random.uniform(75, 40), 1)
@@ -141,24 +143,25 @@ class GameThread(threading.Thread):
 				self.gameVars.ball.y = BALL_WIDTH
 
 			if self.isColliding(DISTANCE_FROM_WALL, self.gameVars.player1y, PLAYER_WIDTH, PLAYER_HEIGHT,
-			               self.gameVars.ball.x,
-			               self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
+			                    self.gameVars.ball.x,
+			                    self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 				ballDirection.x = 1
 				# get the percentage of the way the ball is from the top of the player to the bottom
 				# adjust it so it goes from 0.5 to -0.5
 				# make it go in the same direction from where it went and more extreme
 				ballDirection.y = abs(((self.gameVars.ball.y - self.gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
-					* math.copysign(3.5, ballDirection.y)
+				                  * math.copysign(3.5, ballDirection.y)
 				ballDirection.normalize()
 				speed += 0.1
-			if self.isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, self.gameVars.player2y, PLAYER_WIDTH, PLAYER_HEIGHT,
-			               self.gameVars.ball.x, self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
+			if self.isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, self.gameVars.player2y, PLAYER_WIDTH,
+			                    PLAYER_HEIGHT,
+			                    self.gameVars.ball.x, self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 				ballDirection.x = -1
 				# get the percentage of the way the ball is from the top of the player to the bottom
 				# adjust it so it goes from 0.5 to -0.5
 				# make it go in the same direction from where it went and more extreme
 				ballDirection.y = abs(((self.gameVars.ball.y - self.gameVars.player2y) / PLAYER_HEIGHT) - 0.5) \
-					* math.copysign(3.5, ballDirection.y)
+				                  * math.copysign(3.5, ballDirection.y)
 				ballDirection.normalize()
 				speed += 0.1
 			if self.gameVars.ball.x - BALL_WIDTH < 0:

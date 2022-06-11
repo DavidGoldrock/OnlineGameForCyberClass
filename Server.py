@@ -1,11 +1,6 @@
-import random
 import socket
-import threading
-import time
 # green terminal:
 from os import system
-
-import pygame
 
 from RequestResponse import *
 
@@ -19,6 +14,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 # global variables
 playerCount = 0
+
 
 def sendMessage(code: int, conn: socket.socket, value=None, ShouldPrint=False):
 	msg = Response(code, value)
