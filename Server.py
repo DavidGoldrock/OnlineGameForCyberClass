@@ -38,12 +38,15 @@ def createRandomDirection():
 	return ballDirection
 
 
-def gameThreadFunction(gameVars: Game, nothing):
+def gameThreadFunction(gameVars: Game, connected: Connected):
+	while not (connected.connected1 and connected.connected2):
+		pass
+	gameVars.gameOn = True
 	timeNow = time.time()
 	clock = pygame.time.Clock()
 	ballDirection = createRandomDirection()
-	speed = 1
-	while gameVars.gameOn:
+	speed = 0.5
+	while connected.connected1 and connected.connected2:
 		clock.tick(FPS)
 		deltaTime = time.time() - timeNow
 		gameVars.ball = gameVars.ball + (ballDirection * deltaTime * speed)
@@ -63,7 +66,7 @@ def gameThreadFunction(gameVars: Game, nothing):
 			# adjust it so it goes from 0.5 to -0.5
 			# make it go in the same direction from where it went and more extreme
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
-				* math.copysign(3.5, ballDirection.y)
+			                  * math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
 			speed += 0.1
 		if isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, gameVars.player2y, PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -73,19 +76,19 @@ def gameThreadFunction(gameVars: Game, nothing):
 			# adjust it so it goes from 0.5 to -0.5
 			# make it go in the same direction from where it went and more extreme
 			ballDirection.y = abs(((gameVars.ball.y - gameVars.player2y) / PLAYER_HEIGHT) - 0.5) \
-				* math.copysign(3.5, ballDirection.y)
+			                  * math.copysign(3.5, ballDirection.y)
 			ballDirection.normalize()
 			speed += 0.1
 		if gameVars.ball.x - BALL_WIDTH < 0:
 			gameVars.player2Score += 1
 			gameVars.ball = Vector(0.5, 0.5)
 			ballDirection = createRandomDirection()
-			speed = 1
+			speed = 0.5
 		if gameVars.ball.x + BALL_WIDTH > 1:
 			gameVars.player1Score += 1
 			gameVars.ball = Vector(0.5, 0.5)
 			ballDirection = createRandomDirection()
-			speed = 1
+			speed = 0.5
 		timeNow = time.time()
 
 
@@ -98,6 +101,14 @@ def sendMessage(code: int, conn: socket.socket, value=None, ShouldPrint=False):
 	msgLength = str(len(message)).encode(FORMAT)
 	msgLength += b' ' * (HEADER - len(msgLength))
 	conn.send(msgLength + message)
+
+
+def killUnnecceryThreads():
+	while True:
+		for i in range(len(games)):
+			if games[i]["thread"]._args[1].gameOn and not (
+					games[i]["thread"]._args[1].connected1 and games[i]["thread"]._args[1].connected2):
+				games.pop(i)
 
 
 def handleClient(conn, addr):
@@ -114,22 +125,10 @@ def handleClient(conn, addr):
 			msg = Request.fromByteArray(conn.recv(msgLength))  # receive number of bytes told by user
 			# act in different ways depending on the request type
 			match msg.RequestType:
-				case RequestType.DISCONNECT:
-					connected = False
-					playerCount -= 1
-					try:
-						gameThread._args[0].gameOn = False
-						for i in range(len(games)):
-							if games[i]["thread"] == gameThread:
-								games.pop(i)
-					except:
-						pass
-					print(f"[DISCONNECT]{conn.getpeername()}")
-					print(f"[STATUS] Number of active users:{playerCount}")
-					sendMessage(200, conn)
 				case RequestType.CREATE_GAME:
 					if msg.value is not None:
-						gameThread = threading.Thread(target=gameThreadFunction, args=(Game(), 0), daemon=True)
+						gameThread = threading.Thread(target=gameThreadFunction, args=(Game(), Connected(True, False)),
+						                              daemon=True)
 						gameThread.start()
 						games.append(
 							{"thread": gameThread, "name": msg.value["name"], "password": msg.value["password"]})
@@ -139,8 +138,24 @@ def handleClient(conn, addr):
 						sendMessage(200, conn, value=0)
 					else:
 						sendMessage(402, conn)
+				case RequestType.JOIN_GAME:
+					found = False
+					for g in games:
+						if g["name"] == msg.value["name"]:
+							found = True
+							if g["password"] == None or g["password"] == NoneType or g["password"] == "none" or g[
+								"password"] == msg.value["password"]:
+								gameThread = g["thread"]
+								Cardinality = 1
+								gameThread._args[1].connected2 = True
+								sendMessage(200, conn, value=1)
+							else:
+								sendMessage(401, conn)
+							break
+					if not found:
+						sendMessage(403, conn)
 				case RequestType.GET_GAME_VARS:
-					sendMessage(200, conn,value=gameThread._args[0])
+					sendMessage(200, conn, value=gameThread._args[0])
 				case RequestType.SET_Y:
 					if msg.value:
 						if Cardinality == 0:
@@ -150,20 +165,6 @@ def handleClient(conn, addr):
 						sendMessage(200, conn)
 					else:
 						sendMessage(402, conn)
-				case RequestType.JOIN_GAME:
-					found = False
-					for g in games:
-						if g["name"] == msg.value["name"]:
-							found = True
-							if g["password"] == msg.value["password"]:
-								gameThread = g["thread"]
-								Cardinality = 1
-								sendMessage(200, conn, value=1)
-							else:
-								sendMessage(401, conn)
-							break
-					if not found:
-						sendMessage(403, conn)
 				case RequestType.UPDATE_GAME:
 					if msg.value:
 						if Cardinality == 0:
@@ -177,6 +178,16 @@ def handleClient(conn, addr):
 						                   "player2Score": gameThread._args[0].player2Score})
 					else:
 						sendMessage(402, conn)
+				case RequestType.DISCONNECT:
+					connected = False
+					playerCount -= 1
+					if Cardinality:
+						gameThread._args[1].connected1 = False
+					else:
+						gameThread._args[1].connected2 = False
+					print(f"[DISCONNECT]{conn.getpeername()}")
+					print(f"[STATUS] Number of active users:{playerCount}")
+					sendMessage(200, conn)
 				case other_message:
 					sendMessage(400, conn)
 					print(f"[UNEXPECTED REQUEST] type:{other_message} value: {msg.value}")
@@ -194,4 +205,6 @@ def start():
 
 
 print(f"[STARTING] SERVER: {SERVER} PORT: {PORT}")
+thread = threading.Thread(target=killUnnecceryThreads, daemon=True)
+thread.start()
 start()

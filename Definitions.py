@@ -11,7 +11,14 @@ DISTANCE_FROM_WALL = 0.1
 BALL_WIDTH = 0.02
 PLAYER_HEIGHT = 0.15
 PLAYER_WIDTH = 0.025
-FPS = 24
+FPS = 60
+
+
+class Connected:
+	def __init__(self, connected1 , connected2):
+		self.connected1 = connected1
+		self.connected2 = connected2
+		self.gameOn = False
 
 
 class Vector:
@@ -67,7 +74,6 @@ class Game:
 		self.player2y = 0.5 - PLAYER_HEIGHT / 2
 		self.player1Score = 0
 		self.player2Score = 0
-		self.gameOn = True
 		self.ball = Vector(0.5, 0.5)
 
 	def toByteArray(self):
@@ -75,8 +81,7 @@ class Game:
 		       struct.pack('d', self.player2y) + \
 		       self.player1Score.to_bytes(4, 'little') + \
 		       self.player2Score.to_bytes(4, 'little') + \
-		       self.ball.toByteArray() + \
-		       (b'\x01' if self.gameOn else b'\x00')
+		       self.ball.toByteArray()
 
 	@staticmethod
 	def fromByteArray(arr: bytearray):
@@ -85,10 +90,4 @@ class Game:
 		g.player2y = struct.unpack('d', arr[8:16])[0]
 		g.player1Score = int.from_bytes(arr[16:20], 'little')
 		g.player2Score = int.from_bytes(arr[20:24], 'little')
-		if arr[24:25] == b'\x01':
-			g.ball = Vector.fromByteArray(arr[24:33])
-			g.gameOn = bool(int.from_bytes(arr[33:34], 'little'))
-		else:
-			g.ball = Vector.fromByteArray(arr[24:41])
-			g.gameOn = arr[41:42] == b'\x01'
-		return g
+		g.ball = Vector.fromByteArray(arr[24:])
