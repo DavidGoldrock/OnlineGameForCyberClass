@@ -79,7 +79,7 @@ class Request:
 		return Request(t[0], t[1])
 
 	@staticmethod
-	def fromByteArray(t: bytearray):
+	def fromByteArray(t: bytearray | bytes):
 		return Request(RequestType.fromByte(t[0:1]), FunctionHandlerOut(t[2:], RequestTypeEncodingDict[t[1:2]]))
 
 
@@ -88,7 +88,8 @@ responseDict = {200: "[OK]",
                 400: "[ERROR] Unknown error",
                 401: "[ERROR], passwords don't match",
                 402: "[ERROR] message value object not sent",
-                403: "[ERROR] game does not exist"}
+                403: "[ERROR] game does not exist",
+                404: "[ERROR] connection ended"}
 
 
 class Response:
@@ -116,7 +117,7 @@ class Response:
 		return Response(t[0], t[1])
 
 	@staticmethod
-	def fromByteArray(t: bytearray):
+	def fromByteArray(t: bytearray | bytes):
 		return Response(int.from_bytes(t[0:2], 'little'), FunctionHandlerOut(t[3:], RequestTypeEncodingDict[t[2:3]]))
 
 	def toTuple(self):
