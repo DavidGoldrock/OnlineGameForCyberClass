@@ -45,6 +45,7 @@ RequestTypeEncodingDict = {int: b'\x00',
                            dict: b'\x05',
                            None: b'\x06',
                            NoneType: b'\x07',
+                           list : b'\x08',
                            b'\x00': int,
                            b'\x01': str,
                            b'\x02': Vector,
@@ -52,7 +53,8 @@ RequestTypeEncodingDict = {int: b'\x00',
                            b'\x04': float,
                            b'\x05': dict,
                            b'\x06': None,
-                           b'\x07': NoneType
+                           b'\x07': NoneType,
+                           b'\x08': list
                            }
 
 
@@ -139,7 +141,7 @@ def FunctionHandlerIn(o):
 		return o.toByte()
 	if isinstance(o, float):
 		return struct.pack('d', o)
-	if isinstance(o, dict):
+	if isinstance(o, dict) or isinstance(o, list):
 		return pickle.dumps(o)
 	return b'\x00'
 
@@ -157,7 +159,7 @@ def FunctionHandlerOut(o, t: type):
 		return RequestType.fromByte(o)
 	if t is float:
 		return struct.unpack('d', o)[0]
-	if t is dict:
+	if t is dict or t is list:
 		return pickle.loads(o)
 	if t is None:
 		return None

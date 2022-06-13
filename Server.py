@@ -3,7 +3,7 @@ import socket
 from os import system
 
 from RequestResponse import *
-
+from GameThread import *
 system('color a')
 # pygame init
 pygame.init()
@@ -93,6 +93,8 @@ def handleClient(conn, addr):
 						                   "player2Score": gameThread.gameVars.player2Score})
 					else:
 						sendMessage(402, conn)
+				case RequestType.RETRIEVE_GAMES:
+					sendMessage(200,conn, value=[i["name"] for i in games])
 				case RequestType.DISCONNECT:
 					connected = False
 					playerCount -= 1

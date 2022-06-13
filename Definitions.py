@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+import sys
 import threading
 import math
 import struct
@@ -24,7 +25,14 @@ class Connected:
 		self.connected2 = connected2
 		self.gameOn = False
 
+	def either(self):
+		return self.connected1 or self.connected2
 
+	def Both(self):
+		return self.connected1 and self.connected2
+
+	def notAnd(self):
+		return not (self.connected1 and self.connected2)
 class Vector:
 	def __init__(self, x, y):
 		self.x = x
@@ -96,83 +104,3 @@ class Game:
 		g.player2Score = int.from_bytes(arr[20:24], 'little')
 		g.ball = Vector.fromByteArray(arr[24:])
 		return g
-
-
-class GameThread(threading.Thread):
-	def __init__(self, gameVars: Game, connected: Connected, index: int):
-		super().__init__(daemon=True)
-		self.gameVars = gameVars
-		self.connected = connected
-		self.index = index
-
-	@staticmethod
-	def isColliding(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h):
-		return r1x + r1w >= r2x and \
-		       r1x <= r2x + r2w and \
-		       r1y + r1h >= r2y and \
-		       r1y <= r2y + r2h
-
-	@staticmethod
-	def createRandomDirection():
-		ballDirection = Vector.fromDegrees(random.uniform(75, 40), 1)
-		if random.choice([True, False]):
-			ballDirection.x *= -1
-		if random.choice([True, False]):
-			ballDirection.y *= -1
-		return ballDirection
-
-	def run(self):
-		while not (self.connected.connected1 and self.connected.connected2):
-			pass
-		self.gameVars.gameOn = True
-		timeNow = time.time()
-		clock = pygame.time.Clock()
-		ballDirection = self.createRandomDirection()
-		speed = 0.5
-		while self.connected.connected1 and self.connected.connected2:
-			clock.tick(FPS)
-			deltaTime = time.time() - timeNow
-			self.gameVars.ball = self.gameVars.ball + (ballDirection * deltaTime * speed)
-
-			if self.gameVars.ball.y + BALL_WIDTH > 1:
-				ballDirection.y *= -1
-				self.gameVars.ball.y = 1 - BALL_WIDTH
-
-			if self.gameVars.ball.y - BALL_WIDTH < 0:
-				ballDirection.y *= -1
-				self.gameVars.ball.y = BALL_WIDTH
-
-			if self.isColliding(DISTANCE_FROM_WALL, self.gameVars.player1y, PLAYER_WIDTH, PLAYER_HEIGHT,
-			                    self.gameVars.ball.x,
-			                    self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
-				ballDirection.x = 1
-				# get the percentage of the way the ball is from the top of the player to the bottom
-				# adjust it so it goes from 0.5 to -0.5
-				# make it go in the same direction from where it went and more extreme
-				ballDirection.y = abs(((self.gameVars.ball.y - self.gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
-				                  * math.copysign(3.5, ballDirection.y)
-				ballDirection.normalize()
-				speed += 0.1
-			if self.isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, self.gameVars.player2y, PLAYER_WIDTH,
-			                    PLAYER_HEIGHT,
-			                    self.gameVars.ball.x, self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
-				ballDirection.x = -1
-				# get the percentage of the way the ball is from the top of the player to the bottom
-				# adjust it so it goes from 0.5 to -0.5
-				# make it go in the same direction from where it went and more extreme
-				ballDirection.y = abs(((self.gameVars.ball.y - self.gameVars.player2y) / PLAYER_HEIGHT) - 0.5) \
-				                  * math.copysign(3.5, ballDirection.y)
-				ballDirection.normalize()
-				speed += 0.1
-			if self.gameVars.ball.x - BALL_WIDTH < 0:
-				self.gameVars.player2Score += 1
-				self.gameVars.ball = Vector(0.5, 0.5)
-				ballDirection = self.createRandomDirection()
-				speed = 0.5
-			if self.gameVars.ball.x + BALL_WIDTH > 1:
-				self.gameVars.player1Score += 1
-				self.gameVars.ball = Vector(0.5, 0.5)
-				ballDirection = self.createRandomDirection()
-				speed = 0.5
-			timeNow = time.time()
-		games[self.index] = None
