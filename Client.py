@@ -1,5 +1,4 @@
 import socket
-import pickle
 from Definitions import *
 from RequestResponse import *
 SERVER = "192.168.2.102"

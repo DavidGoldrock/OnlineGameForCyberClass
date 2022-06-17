@@ -29,6 +29,7 @@ Cardinality = Client.send(RequestType.CREATE_GAME, {"name": "chen", "password": 
 
 # Cardinality = Client.send(RequestType.JOIN_GAME, {"name": "chen", "password": None}).value
 
+
 def textBlock(text: str, x: float, y: float, size: int, color: tuple):
 	x, y = x * getScreenSize()[0], y * getScreenSize()[1]
 	font = pygame.font.Font(configPath + "/ARCADECLASSIC.TTF", size)

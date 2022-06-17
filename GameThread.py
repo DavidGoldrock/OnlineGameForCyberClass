@@ -1,8 +1,14 @@
+import sys
+import threading
+import time
+
+import pygame
+
 from Definitions import *
 
 
 class GameThread(threading.Thread):
-	def __init__(self, gameVars: Game, connected: Connected, index: int):
+	def __init__(self, gameVars: Game, connected: Connected, index: str):
 		super().__init__(daemon=True)
 		self.gameVars = gameVars
 		self.connected = connected
@@ -25,6 +31,8 @@ class GameThread(threading.Thread):
 		return ballDirection
 
 	def run(self):
+		# TODO make sure that when a single player connects and disconnects the program kills itself
+		pygame.init()
 		while self.connected.notAnd():
 			pass
 		self.gameVars.gameOn = True
@@ -46,25 +54,25 @@ class GameThread(threading.Thread):
 				self.gameVars.ball.y = BALL_WIDTH
 
 			if GameThread.isColliding(DISTANCE_FROM_WALL, self.gameVars.player1y, PLAYER_WIDTH, PLAYER_HEIGHT,
-			                    self.gameVars.ball.x,
-			                    self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
+			                          self.gameVars.ball.x,
+			                          self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 				ballDirection.x = 1
 				# get the percentage of the way the ball is from the top of the player to the bottom
 				# adjust it so it goes from 0.5 to -0.5
 				# make it go in the same direction from where it went and more extreme
 				ballDirection.y = abs(((self.gameVars.ball.y - self.gameVars.player1y) / PLAYER_HEIGHT) - 0.5) \
-					* math.copysign(3.5, ballDirection.y)
+				                  * math.copysign(3.5, ballDirection.y)
 				ballDirection.normalize()
 				speed += 0.1
 			if GameThread.isColliding(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH, self.gameVars.player2y, PLAYER_WIDTH,
-			                    PLAYER_HEIGHT,
-			                    self.gameVars.ball.x, self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
+			                          PLAYER_HEIGHT,
+			                          self.gameVars.ball.x, self.gameVars.ball.y, BALL_WIDTH, BALL_WIDTH):
 				ballDirection.x = -1
 				# get the percentage of the way the ball is from the top of the player to the bottom
 				# adjust it so it goes from 0.5 to -0.5
 				# make it go in the same direction from where it went and more extreme
 				ballDirection.y = abs(((self.gameVars.ball.y - self.gameVars.player2y) / PLAYER_HEIGHT) - 0.5) \
-					* math.copysign(3.5, ballDirection.y)
+				                  * math.copysign(3.5, ballDirection.y)
 				ballDirection.normalize()
 				speed += 0.1
 			if self.gameVars.ball.x - BALL_WIDTH < 0:
@@ -81,5 +89,5 @@ class GameThread(threading.Thread):
 
 		while self.connected.either():
 			pass
-		games[self.index] = None
+		del games[self.index]
 		sys.exit()

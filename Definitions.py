@@ -1,12 +1,8 @@
 from __future__ import annotations
-
-import random
-import sys
-import threading
 import math
 import struct
-import time
-import pygame
+import random
+import string
 
 PORT = 5050
 HEADER = 4
@@ -16,7 +12,7 @@ BALL_WIDTH = 0.02
 PLAYER_HEIGHT = 0.15
 PLAYER_WIDTH = 0.025
 FPS = 60
-games = []
+games = {}
 
 
 class Connected:
@@ -24,15 +20,18 @@ class Connected:
 		self.connected1 = connected1
 		self.connected2 = connected2
 		self.gameOn = False
+		self.quit = False
 
 	def either(self):
-		return self.connected1 or self.connected2
+		return not self.quit and (self.connected1 or self.connected2)
 
 	def Both(self):
-		return self.connected1 and self.connected2
+		return not self.quit and (self.connected1 and self.connected2)
 
 	def notAnd(self):
-		return not (self.connected1 and self.connected2)
+		return not self.quit and (not (self.connected1 and self.connected2))
+
+
 class Vector:
 	def __init__(self, x, y):
 		self.x = x
@@ -104,3 +103,7 @@ class Game:
 		g.player2Score = int.from_bytes(arr[20:24], 'little')
 		g.ball = Vector.fromByteArray(arr[24:])
 		return g
+
+
+def randStr(N: int, chars=string.ascii_uppercase + string.digits):
+	return ''.join(random.choice(chars) for _ in range(N))
