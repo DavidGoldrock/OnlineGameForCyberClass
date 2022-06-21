@@ -5,6 +5,7 @@ from os import system
 
 from RequestResponse import *
 from GameThread import *
+
 system('color a')
 # create socket
 SERVER = socket.gethostbyname(socket.gethostname())
@@ -44,7 +45,8 @@ def handleClient(conn, addr):
 						key = randStr(64)
 						gameThread = GameThread(Game(), Connected(True, False), key)
 						gameThread.start()
-						games[key] = {"thread": gameThread, "name": msg.value["name"], "password": msg.value["password"]}
+						games[key] = {"thread": gameThread, "name": msg.value["name"],
+						              "password": msg.value["password"]}
 						print(f"[Game Added] {msg.value}")
 						Cardinality = 0
 						print(f"[Player Dict Updated]")
@@ -62,7 +64,7 @@ def handleClient(conn, addr):
 									gameThread = g["thread"]
 									Cardinality = 1
 									gameThread.connected.connected2 = True
-									sendMessage(200, conn,Cardinality)
+									sendMessage(200, conn, Cardinality)
 								else:
 									sendMessage(401, conn)
 								break
@@ -97,14 +99,14 @@ def handleClient(conn, addr):
 				case RequestType.DISCONNECT:
 					connected = False
 					playerCount -= 1
-					if Cardinality:
+					if Cardinality == 0:
 						gameThread.connected.connected1 = False
-						if not gameThread.connected.connected2:
-							gameThread.connected.quit = True
+						# if not gameThread.connected.connected2:
+						# 	gameThread.connected.quit = True
 					else:
 						gameThread.connected.connected2 = False
-						if not gameThread.connected.connected1:
-							gameThread.connected.quit = True
+						# if not gameThread.connected.connected1:
+						# 	gameThread.connected.quit = True
 					print(f"[DISCONNECT]{conn.getpeername()}")
 					print(f"[STATUS] Number of active users:{playerCount}")
 					sendMessage(200, conn)
@@ -122,9 +124,14 @@ def start():
 		thread.start()
 		playerCount += 1
 		print(f"[STATUS] Number of active users:{playerCount}")
-def f():
+
+
+def debugPrinting():
 	while True:
-		print(games)
-threading.Thread(target=f, daemon=True).start()
+		print(len(games))
+
+
+t = threading.Thread(target=debugPrinting, daemon=True)
+t.start()
 print(f"[STARTING] SERVER: {SERVER} PORT: {PORT}")
 start()

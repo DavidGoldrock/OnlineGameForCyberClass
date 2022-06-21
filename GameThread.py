@@ -31,15 +31,18 @@ class GameThread(threading.Thread):
 		return ballDirection
 
 	def run(self):
-		# TODO make sure that when a single player connects and disconnects the program kills itself
 		pygame.init()
-		while self.connected.notAnd():
+		while self.connected.xor():
 			pass
 		self.gameVars.gameOn = True
 		timeNow = time.time()
 		clock = pygame.time.Clock()
 		ballDirection = GameThread.createRandomDirection()
 		speed = 0.5
+		if self.connected.nor():
+			del games[self.index]
+			input()
+			sys.exit()
 		while self.connected.Both():
 			clock.tick(FPS)
 			deltaTime = time.time() - timeNow
@@ -86,7 +89,7 @@ class GameThread(threading.Thread):
 				ballDirection = GameThread.createRandomDirection()
 				speed = 0.5
 			timeNow = time.time()
-
+			print(self.connected)
 		while self.connected.either():
 			pass
 		del games[self.index]

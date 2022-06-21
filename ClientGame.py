@@ -24,6 +24,8 @@ defaultHeight = 640
 window = pygame.display.set_mode([defaultWidth, defaultHeight], RESIZABLE)
 clock = pygame.time.Clock()
 running = True
+# TODO menu, button for creating games, list of current games to join, textbox to enter password, pause menu (with
+#  compatibility with server)
 Cardinality = Client.send(RequestType.CREATE_GAME, {"name": "chen", "password": "none"}).value
 
 

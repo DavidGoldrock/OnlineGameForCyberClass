@@ -20,16 +20,21 @@ class Connected:
 		self.connected1 = connected1
 		self.connected2 = connected2
 		self.gameOn = False
-		self.quit = False
 
 	def either(self):
-		return not self.quit and (self.connected1 or self.connected2)
+		return self.connected1 or self.connected2
 
 	def Both(self):
-		return not self.quit and (self.connected1 and self.connected2)
+		return self.connected1 and self.connected2
 
-	def notAnd(self):
-		return not self.quit and (not (self.connected1 and self.connected2))
+	def xor(self):
+		return self.connected1 != self.connected2
+
+	def nor(self):
+		return not (self.connected1 or self.connected2)
+
+	def __str__(self):
+		return f"1: {self.connected1} 2: {self.connected2}"
 
 
 class Vector:
