@@ -4,8 +4,10 @@ import Client
 import pygame
 from pygame.locals import *
 from pygame.draw import *
+
+import Definitions
 from Definitions import *
-from RequestResponse import *
+from Protocol import RequestType
 
 
 def getScreenSize():
@@ -26,7 +28,8 @@ clock = pygame.time.Clock()
 running = True
 # TODO menu, button for creating games, list of current games to join, textbox to enter password, pause menu (with
 #  compatibility with server)
-Cardinality = Client.send(RequestType.CREATE_GAME, {"name": "chen", "password": "none"}).value
+
+Cardinality = Client.sendAndRecv(RequestType.CREATE_GAME, {"name": "chen", "password": "none"}).value
 
 
 # Cardinality = Client.send(RequestType.JOIN_GAME, {"name": "chen", "password": None}).value
@@ -46,8 +49,9 @@ while running:
 	keys = pygame.key.get_pressed()
 	clock.tick(FPS)
 	# [Rendering]
-	Client.send(RequestType.SET_Y, getRelativePosition()[1])
-	gameVars = Client.send(RequestType.GET_GAME_VARS).value
+	Client.send(RequestType.SET_Y, min(getRelativePosition()[1],1-Definitions.PLAYER_HEIGHT))
+	print(min(getRelativePosition()[1],1-Definitions.PLAYER_HEIGHT))
+	gameVars = Client.sendAndRecv(RequestType.GET_GAME_VARS).value
 	screenSize = getScreenSize()
 	if Cardinality == 1:
 		opponentY = gameVars.player1y * getScreenSize()[1]
@@ -55,13 +59,13 @@ while running:
 			DISTANCE_FROM_WALL * screenSize[0], opponentY, PLAYER_WIDTH * screenSize[0],
 			PLAYER_HEIGHT * screenSize[1]))
 		rect(window, (255, 255, 255), (
-			(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH) * screenSize[0], pygame.mouse.get_pos()[1],
+			(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH) * screenSize[0], min(getRelativePosition()[1],1-Definitions.PLAYER_HEIGHT) * getScreenSize()[1],
 			PLAYER_WIDTH * screenSize[0],
 			PLAYER_HEIGHT * screenSize[1]))
 	else:
 		opponentY = gameVars.player2y * getScreenSize()[1]
 		rect(window, (255, 255, 255), (
-			DISTANCE_FROM_WALL * screenSize[0], pygame.mouse.get_pos()[1], PLAYER_WIDTH * screenSize[0],
+			DISTANCE_FROM_WALL * screenSize[0], min(getRelativePosition()[1],1-Definitions.PLAYER_HEIGHT) * getScreenSize()[1], PLAYER_WIDTH * screenSize[0],
 			PLAYER_HEIGHT * screenSize[1]))
 		rect(window, (255, 255, 255), (
 			(1 - DISTANCE_FROM_WALL - PLAYER_WIDTH) * screenSize[0], opponentY, PLAYER_WIDTH * screenSize[0],
@@ -72,5 +76,5 @@ while running:
 	textBlock(str(gameVars.player2Score), 1 - DISTANCE_FROM_WALL, 0, 48, (255, 255, 255))
 	pygame.display.flip()
 	window.fill((0, 0, 0))
-Client.send(RequestType.DISCONNECT).print()
+Client.send(RequestType.DISCONNECT)
 pygame.quit()

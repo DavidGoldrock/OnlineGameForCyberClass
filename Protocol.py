@@ -1,46 +1,37 @@
 import pickle
 from enum import Enum
 from types import NoneType
-
-from Definitions import *
+import struct
+import Definitions
 
 
 class RequestType(Enum):
 	DISCONNECT = 1
-	CREATE_GAME = 2
-	JOIN_GAME = 3
+	CREATE_GAME = 130
+	JOIN_GAME = 131
 	RETRIEVE_GAMES = 132  # 4 + 128
 	GET_GAME_VARS = 133  # 5 + 128
 	SET_Y = 6
-	UPDATE_GAME = 135  # 7 + 128
 
 	def toByte(self):
 		return self.value.to_bytes(1, 'little')
 
 	@staticmethod
 	def fromByte(byte: bytearray):
-		match int.from_bytes(byte, 'little'):
-			case 1:
-				return RequestType.DISCONNECT
-			case 2:
-				return RequestType.CREATE_GAME
-			case 3:
-				return RequestType.JOIN_GAME
-			case 132:  # 4 + 128
-				return RequestType.RETRIEVE_GAMES
-			case 133:  # 5 + 128
-				return RequestType.GET_GAME_VARS
-			case 6:
-				return RequestType.SET_Y
-			case 135:  # 7 + 128
-				return RequestType.UPDATE_GAME
-		return None
+		dictionary = {v.value: v for v in RequestType}
+		try:
+			return dictionary[int.from_bytes(byte, 'little')]
+		except KeyError:
+			return None
+
+	def ShouldReturnResponse(self):
+		return self.value >= 128
 
 
 RequestTypeEncodingDict = {int: b'\x00',
                            str: b'\x01',
-                           Vector: b'\x02',
-                           Game: b'\x03',
+                           Definitions.Vector: b'\x02',
+                           Definitions.Game: b'\x03',
                            float: b'\x04',
                            dict: b'\x05',
                            None: b'\x06',
@@ -48,8 +39,8 @@ RequestTypeEncodingDict = {int: b'\x00',
                            list: b'\x08',
                            b'\x00': int,
                            b'\x01': str,
-                           b'\x02': Vector,
-                           b'\x03': Game,
+                           b'\x02': Definitions.Vector,
+                           b'\x03': Definitions.Game,
                            b'\x04': float,
                            b'\x05': dict,
                            b'\x06': None,
@@ -134,8 +125,8 @@ def FunctionHandlerIn(o):
 	if isinstance(o, int):
 		return o.to_bytes(1, 'little')
 	if isinstance(o, str):
-		return o.encode(FORMAT)
-	if isinstance(o, Game) or isinstance(o, Vector):
+		return o.encode(Definitions.FORMAT)
+	if isinstance(o, Definitions.Game) or isinstance(o, Definitions.Vector):
 		return o.toByteArray()
 	if isinstance(o, RequestType):
 		return o.toByte()
@@ -150,11 +141,11 @@ def FunctionHandlerOut(o, t: type):
 	if t is int:
 		return int.from_bytes(o, 'little')
 	if t is str:
-		return o.decode(FORMAT)
-	if t is Game:
-		return Game.fromByteArray(o)
-	if t is Vector:
-		return Vector.fromByteArray(o)
+		return o.decode(Definitions.FORMAT)
+	if t is Definitions.Game:
+		return Definitions.Game.fromByteArray(o)
+	if t is Definitions.Vector:
+		return Definitions.Vector.fromByteArray(o)
 	if t is RequestType:
 		return RequestType.fromByte(o)
 	if t is float:
