@@ -54,7 +54,6 @@ CancelButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreen
                                             text='Cancel',
                                             manager=manager)
 games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
-games = ['dsgfsgs','fadefsd']
 gameButtons = [pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * i), (getScreenSize()[0], 50)),
                                             text=game,
                                             manager=manager) for i, game in enumerate(games)]
@@ -106,7 +105,7 @@ while hub:
 				CreateGameButton.disable()
 				for button in gameButtons:
 					button.disable()
-				request = RequestType.CREATE_GAME
+				request = RequestType.JOIN_GAME
 				joinGameName = event.ui_element.text
 		manager.process_events(event)
 	manager.update(timeDelta)
