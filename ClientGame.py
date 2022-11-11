@@ -46,7 +46,7 @@ manager = pygame_gui.UIManager(getScreenSize())
 CreateGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] - 50), (130, 50)),
                                             text='Create Game',
                                             manager=manager)
-RefreshButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] - 50 + 130), (130, 50)),
+RefreshButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((130, getScreenSize()[1] - 50), (130, 50)),
                                             text='Refresh',
                                             manager=manager)
 NameTextBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
