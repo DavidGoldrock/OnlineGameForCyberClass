@@ -96,6 +96,8 @@ while hub:
 				CancelButton.kill()
 				OKButton.kill()
 				NameTextBox.kill()
+				for button in gameButtons:
+					button.kill()
 				hub = False
 			if event.ui_element in gameButtons:
 				CancelButton.show()

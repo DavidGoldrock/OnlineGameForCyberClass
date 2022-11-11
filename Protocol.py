@@ -82,7 +82,8 @@ responseDict = {200: "[OK]",
                 401: "[ERROR], passwords don't match",
                 402: "[ERROR] message value object not sent",
                 403: "[ERROR] game does not exist",
-                404: "[ERROR] connection ended"}
+                404: "[ERROR] connection ended",
+                500: "[ERROR] Internal server error"}
 
 
 class Response:

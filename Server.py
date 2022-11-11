@@ -49,7 +49,7 @@ def handleClient(conn):
 						gameThread = GameThread.GameThread(Definitions.Game(), Definitions.Connected(True, False), key)
 						gameThread.start()
 						Definitions.games[key] = {"thread": gameThread, "name": msg.value["name"],
-						              "password": msg.value["password"]}
+						                          "password": msg.value["password"]}
 						print(f"[Game Added] {msg.value}")
 						Cardinality = 0
 						print(f"[Player Dict Updated]")
@@ -60,17 +60,22 @@ def handleClient(conn):
 					found = False
 					for g in Definitions.games.values():
 						if g is not None and g is not NoneType:
-							if g["name"] == msg.value["name"]:
-								found = True
-								if g["password"] is None or g["password"] == NoneType or g["password"] == "none" or g[
-									"password"] == msg.value["password"]:
-									gameThread = g["thread"]
-									Cardinality = 1
-									gameThread.connected.connected2 = True
-									sendMessage(200, conn, Cardinality)
-								else:
-									sendMessage(401, conn)
-								break
+							try:
+								if g["name"] == msg.value["name"]:
+									found = True
+									# TODO add check that the game isn't already filled
+									if g["password"] is None or g["password"] == NoneType or g["password"] == "" or g[
+										"password"] == msg.value["password"]:
+										gameThread = g["thread"]
+										Cardinality = 1
+										gameThread.connected.connected2 = True
+										sendMessage(200, conn, Cardinality)
+									else:
+										sendMessage(401, conn)
+									break
+							except KeyError:
+								sendMessage(500, conn)
+								continue
 					if not found:
 						sendMessage(403, conn)
 				case RequestType.GET_GAME_VARS:
@@ -82,7 +87,11 @@ def handleClient(conn):
 						else:
 							gameThread.gameVars.player2y = msg.value
 				case RequestType.RETRIEVE_GAMES:
-					sendMessage(200, conn, value=[i["name"] for i in Definitions.games.values()])
+					try:
+						sendMessage(200, conn, value=[i["name"] for i in Definitions.games.values()])
+					except KeyError:
+						sendMessage(500, conn)
+						continue
 				case RequestType.DISCONNECT:
 					connected = False
 					playerCount -= 1
