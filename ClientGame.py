@@ -48,6 +48,18 @@ CreateGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, ge
 JoinGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((180, getScreenSize()[1] - 50), (130, 50)),
                                             text='Join Game',
                                             manager=manager)
+NameCheckBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
+                                            manager=manager)
+OKButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 65, getScreenSize()[1] / 2 + 25), (65, 50)),
+                                            text='OK',
+                                            manager=manager)
+CancelButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 130, getScreenSize()[1] / 2 + 25), (65, 50)),
+                                            text='Cancel',
+                                            manager=manager)
+CancelButton.hide()
+OKButton.hide()
+NameCheckBox.hide()
+request = None
 while hub:
 	timeDelta = clock.tick(FPS) / 1000
 	for event in pygame.event.get():
@@ -56,11 +68,36 @@ while hub:
 			running = False
 		if event.type == pygame_gui.UI_BUTTON_PRESSED:
 			if event.ui_element == CreateGameButton:
-				Cardinality = Client.sendAndRecv(RequestType.CREATE_GAME, {"name": "chen", "password": "none"}).value
+				CancelButton.show()
+				OKButton.show()
+				NameCheckBox.show()
+				NameCheckBox.set_text('')
+				CreateGameButton.disable()
+				JoinGameButton.disable()
+				request = RequestType.CREATE_GAME
+			if event.ui_element == JoinGameButton:
+				CancelButton.show()
+				OKButton.show()
+				NameCheckBox.show()
+				NameCheckBox.set_text('')
+				CreateGameButton.disable()
+				JoinGameButton.disable()
+				request = RequestType.JOIN_GAME
+			if event.ui_element == CancelButton:
+				CancelButton.hide()
+				OKButton.hide()
+				NameCheckBox.hide()
+				CreateGameButton.enable()
+				JoinGameButton.enable()
+			if event.ui_element == OKButton:
+				Cardinality = Client.sendAndRecv(request, {"name": NameCheckBox.get_text(), "password": "none"}).value
 				print(Cardinality)
 				Client.sendAndRecv(RequestType.RETRIEVE_GAMES).print(True)
 				CreateGameButton.kill()
 				JoinGameButton.kill()
+				CancelButton.kill()
+				OKButton.kill()
+				NameCheckBox.kill()
 				hub = False
 		manager.process_events(event)
 	manager.update(timeDelta)
