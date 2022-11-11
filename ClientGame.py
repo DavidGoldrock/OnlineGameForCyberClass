@@ -27,6 +27,7 @@ window = pygame.display.set_mode([defaultWidth, defaultHeight], RESIZABLE)
 clock = pygame.time.Clock()
 running = True
 hub = True
+games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
 # TODO menu, button for creating games, list of current games to join, textbox to enter password, pause menu (with
 #  compatibility with server)
 
@@ -45,6 +46,9 @@ manager = pygame_gui.UIManager(getScreenSize())
 CreateGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] - 50), (130, 50)),
                                             text='Create Game',
                                             manager=manager)
+RefreshButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] - 50 + 130), (130, 50)),
+                                            text='Refresh',
+                                            manager=manager)
 NameTextBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
                                                  manager=manager)
 OKButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 65, getScreenSize()[1] / 2 + 25), (65, 50)),
@@ -53,7 +57,6 @@ OKButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize
 CancelButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 130, getScreenSize()[1] / 2 + 25), (65, 50)),
                                             text='Cancel',
                                             manager=manager)
-games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
 gameButtons = [pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * i), (getScreenSize()[0], 50)),
                                             text=game,
                                             manager=manager) for i, game in enumerate(games)]
@@ -75,6 +78,7 @@ while hub:
 				NameTextBox.show()
 				NameTextBox.set_text('')
 				CreateGameButton.disable()
+				RefreshButton.disable()
 				for button in gameButtons:
 					button.disable()
 				request = RequestType.CREATE_GAME
@@ -83,6 +87,7 @@ while hub:
 				OKButton.hide()
 				NameTextBox.hide()
 				CreateGameButton.enable()
+				RefreshButton.enable()
 				for button in gameButtons:
 					button.enable()
 			if event.ui_element == OKButton:
@@ -93,6 +98,7 @@ while hub:
 				print(Cardinality)
 				Client.sendAndRecv(RequestType.RETRIEVE_GAMES).print(True)
 				CreateGameButton.kill()
+				RefreshButton.kill()
 				CancelButton.kill()
 				OKButton.kill()
 				NameTextBox.kill()
@@ -105,10 +111,19 @@ while hub:
 				NameTextBox.show()
 				NameTextBox.set_text('')
 				CreateGameButton.disable()
+				RefreshButton.disable()
 				for button in gameButtons:
 					button.disable()
 				request = RequestType.JOIN_GAME
 				joinGameName = event.ui_element.text
+			if event.ui_element == RefreshButton:
+				games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
+				for button in gameButtons:
+					button.kill()
+				gameButtons = [pygame_gui.elements.UIButton(
+					relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * i), (getScreenSize()[0], 50)),
+					text=game,
+					manager=manager) for i, game in enumerate(games)]
 		manager.process_events(event)
 	manager.update(timeDelta)
 	manager.draw_ui(window)
