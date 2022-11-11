@@ -45,21 +45,24 @@ manager = pygame_gui.UIManager(getScreenSize())
 CreateGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] - 50), (130, 50)),
                                             text='Create Game',
                                             manager=manager)
-JoinGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((180, getScreenSize()[1] - 50), (130, 50)),
-                                            text='Join Game',
-                                            manager=manager)
-NameCheckBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
-                                            manager=manager)
+NameTextBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
+                                                 manager=manager)
 OKButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 65, getScreenSize()[1] / 2 + 25), (65, 50)),
                                             text='OK',
                                             manager=manager)
 CancelButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 130, getScreenSize()[1] / 2 + 25), (65, 50)),
                                             text='Cancel',
                                             manager=manager)
+games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
+games = ['dsgfsgs','fadefsd']
+gameButtons = [pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * i), (getScreenSize()[0], 50)),
+                                            text=game,
+                                            manager=manager) for i, game in enumerate(games)]
 CancelButton.hide()
 OKButton.hide()
-NameCheckBox.hide()
+NameTextBox.hide()
 request = None
+joinGameName = None
 while hub:
 	timeDelta = clock.tick(FPS) / 1000
 	for event in pygame.event.get():
@@ -70,35 +73,41 @@ while hub:
 			if event.ui_element == CreateGameButton:
 				CancelButton.show()
 				OKButton.show()
-				NameCheckBox.show()
-				NameCheckBox.set_text('')
+				NameTextBox.show()
+				NameTextBox.set_text('')
 				CreateGameButton.disable()
-				JoinGameButton.disable()
+				for button in gameButtons:
+					button.disable()
 				request = RequestType.CREATE_GAME
-			if event.ui_element == JoinGameButton:
-				CancelButton.show()
-				OKButton.show()
-				NameCheckBox.show()
-				NameCheckBox.set_text('')
-				CreateGameButton.disable()
-				JoinGameButton.disable()
-				request = RequestType.JOIN_GAME
 			if event.ui_element == CancelButton:
 				CancelButton.hide()
 				OKButton.hide()
-				NameCheckBox.hide()
+				NameTextBox.hide()
 				CreateGameButton.enable()
-				JoinGameButton.enable()
+				for button in gameButtons:
+					button.enable()
 			if event.ui_element == OKButton:
-				Cardinality = Client.sendAndRecv(request, {"name": NameCheckBox.get_text(), "password": "none"}).value
+				if request == RequestType.CREATE_GAME:
+					Cardinality = Client.sendAndRecv(request, {"name": NameTextBox.get_text(), "password": "none"}).value
+				elif request == RequestType.JOIN_GAME:
+					Cardinality = Client.sendAndRecv(request, {"name": joinGameName, "password": NameTextBox.get_text()}).value
 				print(Cardinality)
 				Client.sendAndRecv(RequestType.RETRIEVE_GAMES).print(True)
 				CreateGameButton.kill()
-				JoinGameButton.kill()
 				CancelButton.kill()
 				OKButton.kill()
-				NameCheckBox.kill()
+				NameTextBox.kill()
 				hub = False
+			if event.ui_element in gameButtons:
+				CancelButton.show()
+				OKButton.show()
+				NameTextBox.show()
+				NameTextBox.set_text('')
+				CreateGameButton.disable()
+				for button in gameButtons:
+					button.disable()
+				request = RequestType.CREATE_GAME
+				joinGameName = event.ui_element.text
 		manager.process_events(event)
 	manager.update(timeDelta)
 	manager.draw_ui(window)
