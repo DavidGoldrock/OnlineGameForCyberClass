@@ -49,7 +49,9 @@ CreateGameButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, ge
 RefreshButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((130, getScreenSize()[1] - 50), (130, 50)),
                                             text='Refresh',
                                             manager=manager)
-NameTextBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
+NameTextBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 85), (130, 50)),
+                                                 manager=manager)
+PasswordTextBox = pygame_gui.elements.UITextEntryBox(relative_rect=pygame.Rect((getScreenSize()[1] / 2 - 65, getScreenSize()[1] / 2 - 25), (130, 50)),
                                                  manager=manager)
 OKButton = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((getScreenSize()[1] / 2 + 65, getScreenSize()[1] / 2 + 25), (65, 50)),
                                             text='OK',
@@ -63,6 +65,7 @@ gameButtons = [pygame_gui.elements.UIButton(relative_rect=pygame.Rect((0, getScr
 CancelButton.hide()
 OKButton.hide()
 NameTextBox.hide()
+PasswordTextBox.hide()
 request = None
 joinGameName = None
 while hub:
@@ -77,6 +80,8 @@ while hub:
 				OKButton.show()
 				NameTextBox.show()
 				NameTextBox.set_text('')
+				PasswordTextBox.show()
+				PasswordTextBox.set_text('')
 				CreateGameButton.disable()
 				RefreshButton.disable()
 				for button in gameButtons:
@@ -92,24 +97,25 @@ while hub:
 					button.enable()
 			if event.ui_element == OKButton:
 				if request == RequestType.CREATE_GAME:
-					Cardinality = Client.sendAndRecv(request, {"name": NameTextBox.get_text(), "password": "none"}).value
+					Cardinality = Client.sendAndRecv(request, {"name": NameTextBox.get_text(), "password": PasswordTextBox.get_text()}).value
 				elif request == RequestType.JOIN_GAME:
-					Cardinality = Client.sendAndRecv(request, {"name": joinGameName, "password": NameTextBox.get_text()}).value
-				print(Cardinality)
+					print(PasswordTextBox.get_text())
+					Cardinality = Client.sendAndRecv(request, {"name": joinGameName, "password": PasswordTextBox.get_text()}).value
 				Client.sendAndRecv(RequestType.RETRIEVE_GAMES).print(True)
 				CreateGameButton.kill()
 				RefreshButton.kill()
 				CancelButton.kill()
 				OKButton.kill()
 				NameTextBox.kill()
+				PasswordTextBox.kill()
 				for button in gameButtons:
 					button.kill()
 				hub = False
 			if event.ui_element in gameButtons:
 				CancelButton.show()
 				OKButton.show()
-				NameTextBox.show()
-				NameTextBox.set_text('')
+				PasswordTextBox.show()
+				PasswordTextBox.set_text('')
 				CreateGameButton.disable()
 				RefreshButton.disable()
 				for button in gameButtons:
@@ -129,6 +135,7 @@ while hub:
 	manager.draw_ui(window)
 	pygame.display.flip()
 	window.fill((0, 0, 0))
+print(Cardinality)
 while running:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:

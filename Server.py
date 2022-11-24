@@ -63,20 +63,24 @@ def handleClient(conn):
 							try:
 								if g["name"] == msg.value["name"]:
 									found = True
+									print(F"[FOUND GAME] {g['name']}")
 									# TODO add check that the game isn't already filled
 									if g["password"] is None or g["password"] == NoneType or g["password"] == "" or g[
 										"password"] == msg.value["password"]:
+										print(f"[PASSWORD] {msg.value['password']} is correct")
 										gameThread = g["thread"]
 										Cardinality = 1
 										gameThread.connected.connected2 = True
 										sendMessage(200, conn, Cardinality)
 									else:
+										print(f"[PASSWORD] {msg.value['password']} is incorrect. correct password is {g['password']}")
 										sendMessage(401, conn)
 									break
 							except KeyError:
 								sendMessage(500, conn)
 								continue
 					if not found:
+						print(f"[JOIN GAME FAILED] for name {g['name']}")
 						sendMessage(403, conn)
 				case RequestType.GET_GAME_VARS:
 					sendMessage(200, conn, value=gameThread.gameVars)

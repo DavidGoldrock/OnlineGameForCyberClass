@@ -2,7 +2,7 @@ import socket
 from Definitions import *
 from Protocol import *
 
-SERVER = "192.168.2.102"
+SERVER = "169.254.203.249"
 ADDR = (SERVER, PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
