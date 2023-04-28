@@ -1,11 +1,11 @@
-<scheme name="chen" version="142">
+<scheme name="chen copy1" version="142">
   <option name="FONT_SCALE" value="1.0" />
   <metaInfo>
-    <property name="created">2022-06-01T14:19:19</property>
+    <property name="created">2022-12-25T12:08:10</property>
     <property name="ide">PyCharmCore</property>
-    <property name="ideVersion">2021.2.4.0.0</property>
-    <property name="modified">2022-06-01T14:19:27</property>
-    <property name="originalScheme">chen</property>
+    <property name="ideVersion">2022.3.0.0</property>
+    <property name="modified">2022-12-25T12:08:32</property>
+    <property name="originalScheme">chen copy1</property>
   </metaInfo>
   <option name="CONSOLE_FONT_NAME" value="Fira Code" />
   <option name="CONSOLE_LIGATURES" value="true" />
