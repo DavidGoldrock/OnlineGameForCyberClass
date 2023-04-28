@@ -5,7 +5,11 @@ from Protocol import *
 SERVER = "169.254.203.249"
 ADDR = (SERVER, PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDR)
+isConnected = True
+try:
+    client.connect(ADDR)
+except OSError:
+    isConnected = False
 
 
 def send(typ: RequestType, value=None):

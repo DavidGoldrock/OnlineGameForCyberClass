@@ -19,6 +19,22 @@ def getRelativePosition():
            getScreenSize()[1]
 
 
+def textBlock(text: str, x: float, y: float, size: int, color: tuple | str, center: bool = True,
+              absoluteSize: bool = True, sizeInPixels = True):
+    if sizeInPixels:
+        size = size * 16 // 12
+    font = pygame.font.Font(configPath + "/ARCADECLASSIC.TTF", size)
+    screenText = font.render(text, False, color)
+
+    if absoluteSize:
+        x, y = x * getScreenSize()[0], y * getScreenSize()[1]
+
+    if center:
+        x -= screenText.get_size()[0] // 2
+        y -= screenText.get_size()[1] // 2
+    window.blit(screenText, (x, y))
+
+
 pygame.init()
 configPath = os.path.dirname(os.path.realpath(__file__))
 defaultWidth = 640
@@ -27,21 +43,28 @@ window = pygame.display.set_mode([defaultWidth, defaultHeight], RESIZABLE)
 clock = pygame.time.Clock()
 running = True
 hub = True
-games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
 
+# server is down
+while not Client.isConnected:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+    keys = pygame.key.get_pressed()
+    clock.tick(FPS)
+    visibleText = str(Client.ADDR).replace('(','').replace(')','').replace('.',' ').replace(',',' ').replace('\'',' ')
+    textBlock(f"Server {visibleText} is down".replace(' ','     '),0.5, 0.4, getScreenSize()[1] // 30, "white")
+    textBlock("please close the application and".replace(' ','     '), 0.5, 0.4 + 4 / 30, getScreenSize()[1] // 30, "white")
+    textBlock("open it again at a later time".replace(' ','     '), 0.5, 0.4 + 8 / 30, getScreenSize()[1] // 30, "white")
+    pygame.display.flip()
+    window.fill((0, 0, 0))
+
+games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
 
 # TODO menu, button for creating games, list of current games to join, textbox to enter password, pause menu (with
 #  compatibility with server)
 
 
 # Cardinality = Client.send(RequestType.JOIN_GAME, {"name": "chen", "password": None}).value
-
-
-def textBlock(text: str, x: float, y: float, size: int, color: tuple):
-    x, y = x * getScreenSize()[0], y * getScreenSize()[1]
-    font = pygame.font.Font(configPath + "/ARCADECLASSIC.TTF", size)
-    screenText = font.render(text, True, color)
-    window.blit(screenText, (x, y))
 
 
 manager = pygame_gui.UIManager(getScreenSize())
@@ -75,12 +98,14 @@ NameTextBox.hide()
 PasswordTextBox.hide()
 request = None
 joinGameName = None
+
+# show game
+print(f"{Client.isConnected=}")
 while hub:
     timeDelta = clock.tick(FPS) / 1000
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            hub = False
-            running = False
+            pygame.quit()
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == CreateGameButton:
                 CancelButton.show()
@@ -148,7 +173,7 @@ print(Cardinality)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            pygame.quit()
     keys = pygame.key.get_pressed()
     clock.tick(FPS)
     # [Rendering]
@@ -178,8 +203,8 @@ while running:
             PLAYER_HEIGHT * screenSize[1]))
     circle(window, (255, 255, 255), (gameVars.ball.x * screenSize[0], gameVars.ball.y * screenSize[1]),
            BALL_WIDTH * screenSize[0])
-    textBlock(str(gameVars.player1Score), DISTANCE_FROM_WALL, 0, 48, (255, 255, 255))
-    textBlock(str(gameVars.player2Score), 1 - DISTANCE_FROM_WALL, 0, 48, (255, 255, 255))
+    textBlock(str(gameVars.player1Score), DISTANCE_FROM_WALL, 0, 48, (255, 255, 255), absoluteSize=False, sizeInPixels=False,center=False)
+    textBlock(str(gameVars.player2Score), 1 - DISTANCE_FROM_WALL, 0, 48, (255, 255, 255), absoluteSize=False, sizeInPixels=False,center=False)
     pygame.display.flip()
     window.fill((0, 0, 0))
 Client.send(RequestType.DISCONNECT)
