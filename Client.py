@@ -2,10 +2,12 @@ import socket
 from Definitions import *
 from Protocol import *
 
-SERVER = "169.254.203.249"
+SERVER = "192.168.2.102"
 ADDR = (SERVER, PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 isConnected = True
+errorOccured = False
+error = None
 try:
     client.connect(ADDR)
 except OSError:
@@ -31,4 +33,8 @@ def recv():
 
 def sendAndRecv(typ: RequestType, value=None):
     send(typ, value)
-    return recv()
+    toReturn = recv()
+    if toReturn.isError():
+        errorOccured = True
+        raise ApplicationError(toReturn)
+    return toReturn

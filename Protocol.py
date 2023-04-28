@@ -29,24 +29,24 @@ class RequestType(Enum):
 
 
 RequestTypeEncodingDict = {int: b'\x00',
-    str: b'\x01',
-    Definitions.Vector: b'\x02',
-    Definitions.Game: b'\x03',
-    float: b'\x04',
-    dict: b'\x05',
-    None: b'\x06',
-    NoneType: b'\x07',
-    list: b'\x08',
-    b'\x00': int,
-    b'\x01': str,
-    b'\x02': Definitions.Vector,
-    b'\x03': Definitions.Game,
-    b'\x04': float,
-    b'\x05': dict,
-    b'\x06': None,
-    b'\x07': NoneType,
-    b'\x08': list
-    }
+                           str: b'\x01',
+                           Definitions.Vector: b'\x02',
+                           Definitions.Game: b'\x03',
+                           float: b'\x04',
+                           dict: b'\x05',
+                           None: b'\x06',
+                           NoneType: b'\x07',
+                           list: b'\x08',
+                           b'\x00': int,
+                           b'\x01': str,
+                           b'\x02': Definitions.Vector,
+                           b'\x03': Definitions.Game,
+                           b'\x04': float,
+                           b'\x05': dict,
+                           b'\x06': None,
+                           b'\x07': NoneType,
+                           b'\x08': list
+                           }
 
 
 class Request:
@@ -106,6 +106,9 @@ class Response:
         else:
             print(self)
 
+    def isError(self) -> bool:
+        return self.ResponseType != 200
+
     @staticmethod
     def fromTuple(t: tuple | list):
         return Response(t[0], t[1])
@@ -157,3 +160,12 @@ def FunctionHandlerOut(o, t: type):
         return None
     if t is NoneType:
         return NoneType
+
+
+class ApplicationError(Exception):
+
+    def __init__(self, response: Response):
+        self.response = response
+
+    def __str__(self):
+        return f"{self.response}"
