@@ -157,6 +157,7 @@ try:
                     CancelButton.hide()
                     OKButton.hide()
                     NameTextBox.hide()
+                    PasswordTextBox.hide()
                     CreateGameButton.enable()
                     RefreshButton.enable()
                     for button in gameButtons:
