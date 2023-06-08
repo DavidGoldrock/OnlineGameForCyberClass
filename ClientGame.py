@@ -22,7 +22,11 @@ def getRelativePosition():
 def textBlock(text: str, x: float, y: float, size: int, color: tuple | str, center: bool = True,
               absoluteSize: bool = True, font=None):
     if font is None:
-        font = pygame.font.Font(configPath + "/ARCADECLASSIC.TTF", size)
+        try:
+            font = pygame.font.Font(configPath + "/ARCADECLASSIC.TTF", size)
+        except Exception:
+            print("file missing")
+            font = pygame.font.SysFont("Arial", size)
         text = text.replace(' ', '     ')
     screenText = font.render(text, False, color)
 
@@ -233,8 +237,8 @@ try:
                 PLAYER_HEIGHT * screenSize[1]))
         circle(window, (255, 255, 255), (gameVars.ball.x * screenSize[0], gameVars.ball.y * screenSize[1]),
                BALL_WIDTH * screenSize[0])
-        textBlock(str(gameVars.player1Score), DISTANCE_FROM_WALL, 0, 48, (255, 255, 255), absoluteSize=False, center=False)
-        textBlock(str(gameVars.player2Score), 1 - DISTANCE_FROM_WALL, 0, 48, (255, 255, 255), absoluteSize=False, center=False)
+        textBlock(str(gameVars.player1Score), DISTANCE_FROM_WALL, 0, 48, (255, 255, 255), absoluteSize=True, center=False)
+        textBlock(str(gameVars.player2Score), 1 - DISTANCE_FROM_WALL, 0, 48, (255, 255, 255), absoluteSize=True, center=False)
         pygame.display.flip()
         window.fill((0, 0, 0))
 except ApplicationError as e:
