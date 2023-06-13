@@ -7,8 +7,8 @@ import Definitions
 
 class RequestType(Enum):
     DISCONNECT = 1
-    CREATE_GAME = 130
-    JOIN_GAME = 131
+    CREATE_GAME = 130 # 2+ 128
+    JOIN_GAME = 131 # 2 + 128
     RETRIEVE_GAMES = 132  # 4 + 128
     GET_GAME_VARS = 133  # 5 + 128
     SET_Y = 6
