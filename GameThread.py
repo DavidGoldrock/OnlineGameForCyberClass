@@ -33,7 +33,7 @@ class GameThread(threading.Thread):
     def run(self):
         pygame.init()
         while True:
-            while self.connected.xor():
+            while not self.connected.Both():
                 if self.connected.nor():
                     del games[self.index]
                     sys.exit()
