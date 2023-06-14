@@ -12,6 +12,8 @@ class RequestType(Enum):
     RETRIEVE_GAMES = 132  # 4 + 128
     GET_GAME_VARS = 133  # 5 + 128
     SET_Y = 6
+    RETRIEVE_PLAYED_GAMES = 135  # 7 + 128
+
 
     def toByte(self):
         return self.value.to_bytes(1, 'little')
@@ -79,10 +81,11 @@ class Request:
 responseDict = {200: "[OK]",
                 301: "[WARNING] already connected",
                 400: "[ERROR] Unknown error",
-                401: "[ERROR], passwords don't match",
+                401: "[ERROR] passwords don't match",
                 402: "[ERROR] message value object not sent",
                 403: "[ERROR] game does not exist",
                 404: "[ERROR] connection ended",
+                405: "[ERROR] Joining game failed: game allready has 2 players",
                 500: "[ERROR] Internal server error"}
 
 

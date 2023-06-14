@@ -43,6 +43,7 @@ def handleClient(conn):
             msg = Protocol.Request.fromByteArray(conn.recv(msgLength))  # receive number of bytes told by user
             # act in different ways depending on the request type
             if msg.RequestType == RequestType.CREATE_GAME:
+                print("[REQUESTED] create game")
                 if msg.value is not None:
                     key = Definitions.randStr(64)
                     gameThread = GameThread.GameThread(Definitions.Game(), Definitions.Connected(True, False), key)
@@ -55,6 +56,7 @@ def handleClient(conn):
                     sendMessage(200, conn, Cardinality)
                 else:
                     sendMessage(402, conn)
+                print("[FINISHED] created game")
             elif msg.RequestType == RequestType.JOIN_GAME:
                 found = False
                 for g in Definitions.games.values():
@@ -68,9 +70,16 @@ def handleClient(conn):
                                     "password"] == msg.value["password"]:
                                     print(f"[PASSWORD] {msg.value['password']} is correct")
                                     gameThread = g["thread"]
-                                    Cardinality = 1
-                                    gameThread.connected.connected2 = True
-                                    sendMessage(200, conn, Cardinality)
+                                    if gameThread.connected.Both():
+                                        sendMessage(405,conn)
+                                    elif gameThread.connected.connected1:
+                                        Cardinality = 1
+                                        gameThread.connected.connected2 = True
+                                        sendMessage(200, conn, Cardinality)
+                                    else:
+                                        Cardinality = 0
+                                        gameThread.connected.connected1 = True
+                                        sendMessage(200, conn, Cardinality)
                                 else:
                                     print(f"[PASSWORD] {msg.value['password']} is incorrect. correct password is {g['password']}")
                                     sendMessage(401, conn)
@@ -91,7 +100,15 @@ def handleClient(conn):
                         gameThread.gameVars.player2y = msg.value
             elif msg.RequestType == RequestType.RETRIEVE_GAMES:
                 try:
-                    sendMessage(200, conn, value=[i["name"] for i in Definitions.games.values()])
+                    sendMessage(200, conn, value=[i["name"] for i in Definitions.games.values() if not i["thread"].connected.Both()])
+                except KeyError:
+                    sendMessage(500, conn)
+                    continue
+            elif msg.RequestType == RequestType.RETRIEVE_PLAYED_GAMES:
+                try:
+                    tosend = [i["name"] for i in Definitions.games.values() if i["thread"].connected.Both()]
+                    print(f"{tosend = }")
+                    sendMessage(200, conn, value=tosend)
                 except KeyError:
                     sendMessage(500, conn)
                     continue

@@ -93,6 +93,7 @@ while not Client.isConnected:
     pygame.display.flip()
 try:
     games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
+    played_games = Client.sendAndRecv(RequestType.RETRIEVE_PLAYED_GAMES).value
 
     # TODO menu, button for creating games, list of current games to join, textbox to enter password, pause menu (with
     #  compatibility with server)
@@ -126,6 +127,12 @@ try:
         relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * i), (getScreenSize()[0], 50)),
         text=game,
         manager=manager) for i, game in enumerate(games)]
+    played_gameButtons = [pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * (i + len(gameButtons))), (getScreenSize()[0], 50)),
+        text=game,
+        manager=manager) for i, game in enumerate(played_games)]
+    for button in played_gameButtons:
+        button.disable()
     CancelButton.hide()
     OKButton.hide()
     NameTextBox.hide()
@@ -179,6 +186,8 @@ try:
                     PasswordTextBox.kill()
                     for button in gameButtons:
                         button.kill()
+                    for button in played_gameButtons:
+                        button.kill()
                     hub = False
                 if event.ui_element in gameButtons:
                     CancelButton.show()
@@ -195,10 +204,19 @@ try:
                     games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
                     for button in gameButtons:
                         button.kill()
+                    for button in played_gameButtons:
+                        button.kill()
                     gameButtons = [pygame_gui.elements.UIButton(
                         relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * i), (getScreenSize()[0], 50)),
                         text=game,
                         manager=manager) for i, game in enumerate(games)]
+                    played_gameButtons = [pygame_gui.elements.UIButton(
+                        relative_rect=pygame.Rect((0, getScreenSize()[1] / 5 + 50 * (i + len(gameButtons))),
+                                                  (getScreenSize()[0], 50)),
+                        text=game,
+                        manager=manager) for i, game in enumerate(played_games)]
+                    for button in played_gameButtons:
+                        button.disable()
             manager.process_events(event)
         manager.update(timeDelta)
         manager.draw_ui(window)
