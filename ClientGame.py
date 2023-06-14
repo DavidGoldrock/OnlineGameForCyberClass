@@ -202,6 +202,7 @@ try:
                     joinGameName = event.ui_element.text
                 if event.ui_element == RefreshButton:
                     games = Client.sendAndRecv(RequestType.RETRIEVE_GAMES).value
+                    played_games = Client.sendAndRecv(RequestType.RETRIEVE_PLAYED_GAMES).value
                     for button in gameButtons:
                         button.kill()
                     for button in played_gameButtons:
