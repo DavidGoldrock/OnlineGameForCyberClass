@@ -42,10 +42,6 @@ class GameThread(threading.Thread):
             clock = pygame.time.Clock()
             ballDirection = GameThread.createRandomDirection()
             speed = 0.5
-            if self.connected.nor():
-                del games[self.index]
-                input()
-                sys.exit()
             while self.connected.Both():
                 clock.tick(FPS)
                 deltaTime = time.time() - timeNow
